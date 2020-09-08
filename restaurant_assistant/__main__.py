@@ -11,7 +11,6 @@ def main():
     while(True):
         print('Please enter a sentence.')
         answer = input().lower()
-        print(answer)
         utterance_type = classifier.classify(answer)
         print(f'That utterance is of type {utterance_type.name}.')
 
