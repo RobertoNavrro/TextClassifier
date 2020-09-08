@@ -1,19 +1,27 @@
-from textclass.Utterance import Utterance
+import pandas as pd
+import numpy as np
+import os
 
 def load_dialog_data():
-    dialog_list = list()
-    with open("D:\\Documents\\University\\UU\\MAIR\\Projects\\Text_Classifier\\data\\dialogs.dat","r") as raw_dialog_data:
+    tuppled_data = list()
+    with open("data\\dialogs.dat","r") as raw_dialog_data:
         for line in raw_dialog_data:
-            dialog_list.append(line)
-    return dialog_list
+          
+            (label,utterance) = line.split(' ',1) #divides the data into two strings
+            utterance = utterance[:-1] #removes the \n character
+            tuppled_data.append([label, utterance]) #creates a tupple
+    return tuppled_data
 
 
-def generate_Classes(dialog_list):
-   for dialog in dialog_list:
+def generate_dataframe(tuppled_data):
+    df = pd.DataFrame.from_records(tuppled_data, columns=['label','utterance'])
+    
+    return df
        
 
 
 if __name__ == "__main__":
-    dialog_list = load_dialog_data()
-    generate_Classes(dialog_list)
     
+    #print(os.getcwd())
+    data = load_dialog_data()
+    df = generate_dataframe(data)
