@@ -24,7 +24,6 @@ class KeywordClassifier(UtteranceClassifier):
             #check whether the key occurs in the utterance (does it appear as a substring basically)
             if key in utterance:
                 value = self.keywords.get(key,"\0")
-                break
 
         if value == "\0": #If we cannot classify make it null (might be incorrect to do so!, ask)
             answer = UtteranceType["null"]
@@ -169,6 +168,7 @@ class KeywordClassifier(UtteranceClassifier):
         self.keywords["what do"] = "request"
         self.keywords["can you"] = "request"
         self.keywords["tell me"] = "request"
+        self.keywords["can i"] = "request"
         
     def generate_restart(self):
         self.keywords["start over"] = "restart"
