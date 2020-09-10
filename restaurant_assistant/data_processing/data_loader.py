@@ -24,21 +24,16 @@ def tokenize_utterance(string):
     tokens = string.split()
     return tokens
 
-def generate_BOW_model():
-    utterance_list = list()
-    BOW = dict()
-    
-    path = str(Path(__file__).parent.parent.parent.joinpath('data', 'dialogs.dat'))
-    with open(path, "r") as raw_dialog_data:
-        for line in raw_dialog_data:
-            (label, utterance) = line.split(' ', 1)  # divides the data into two strings
-            utterance = utterance[:-1]
-            tokenized_utterance = tokenize_utterance(utterance)
-            for token in tokenized_utterance:
-                if token in BOW.keys():
-                    BOW[token]+= 1
-                if token not in BOW.keys():
-                    BOW[token] = 1
+def generate_BOW_model(train_data):
+    BOW = dict()    
+    utterance_data = train_data[Column.utterance].tolist()
+    for entry in utterance_data:
+        tokenized_utterance = tokenize_utterance(entry)
+        for token in tokenized_utterance:
+            if token in BOW.keys():
+                BOW[token]+= 1
+            if token not in BOW.keys():
+                BOW[token] = 1
     return BOW
 
 def generate_dataframes(tuppled_data) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -48,3 +43,7 @@ def generate_dataframes(tuppled_data) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
 if __name__ == "__main__":
     # Just for debugging :)
+    data = load_dialog_data()
+    train_data , test_data = generate_dataframes(data)
+    BOW = generate_BOW_model(train_data)
+    print(BOW)
