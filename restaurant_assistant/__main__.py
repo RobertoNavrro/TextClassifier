@@ -1,5 +1,7 @@
 from restaurant_assistant.data_processing import data_loader
 from restaurant_assistant.textclass.majority_classifier import MajorityClassifier
+from restaurant_assistant.textclass.decision_tree_classifier import DecisionTreeClassifier
+from restaurant_assistant.textclass.keyword_classifier import KeywordClassifier
 
 
 def main():
