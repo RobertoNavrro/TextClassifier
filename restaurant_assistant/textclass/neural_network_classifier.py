@@ -37,7 +37,7 @@ class NeuralNetworkClassifier(UtteranceClassifier):
             history = self.network.fit(
                 x=numpy.array(data[CONVERTED].to_list()),
                 y=numpy.array(data[NR_LABEL].to_list()),
-                epochs=20,
+                epochs=10,
                 verbose=2,
                 validation_split=0.1,
                 batch_size=32)
