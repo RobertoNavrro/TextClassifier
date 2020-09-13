@@ -6,8 +6,9 @@ from restaurant_assistant.textclass.keyword_classifier import KeywordClassifier
 
 def main():
     train_data, test_data = data_loader.generate_dataframes(data_loader.load_dialog_data())
-    classifier = MajorityClassifier()
+    classifier = DecisionTreeClassifier()
     classifier.initialize(train_data)
+    classifier.evaluate(test_data)
 
     print('Welcome to the text classifier.')
     while(True):
