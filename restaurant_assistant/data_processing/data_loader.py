@@ -38,33 +38,6 @@ def generate_dataframes(tuppled_data) -> Tuple[pd.DataFrame, pd.DataFrame]:
     return train_data, test_data
 
 
-# def generate_bow_input(input):
-#     BOW = dict()    
-#     for entry in input:
-#         tokenized_utterance = tokenize_utterance(entry)
-#         for token in tokenized_utterance:
-#             if token in BOW.keys():
-#                 BOW[token]+= 1
-#             if token not in BOW.keys():
-#                 BOW[token] = 1
-#     return BOW
-
-
-# def generate_BOW_model(train_data):
-#     BOW = dict()    
-#     utterance_data = train_data[Column.utterance].tolist()
-#     for entry in utterance_data:
-#         tokenized_utterance = tokenize_utterance(entry)
-#         for token in tokenized_utterance:
-#             if token in BOW.keys():
-#                 BOW[token]+= 1
-#             if token not in BOW.keys():
-#                 BOW[token] = 1
-#     return BOW
-
-
 if __name__ == "__main__":
     data = load_dialog_data()
     train , test = generate_dataframes(data)
-    bow = convert_to_bow(train)
-    arr = bow.toarray()

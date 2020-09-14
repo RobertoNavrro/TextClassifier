@@ -7,6 +7,7 @@ def main():
     train_data, test_data = data_loader.generate_dataframes(data)
     classifier = NeuralNetworkClassifier()
     classifier.initialize(train_data)
+    classifier.evaluate(test_data)
 
     print('Testing performance.')
     f1_result, acc_result = classifier.test_performance(test_data)
