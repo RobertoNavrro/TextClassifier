@@ -53,12 +53,11 @@ class UtteranceClassifier(ABC):
         Test the performance of the classifier on various metrics.
         """
         result = 'result'
-        test_data[result] = ''
-        for i in test_data.index:
-            guess = self.classify(test_data.at[i, Column.utterance])
-            test_data.at[i, result] = guess.name
+        test_data[result] = [self.classify(utterance).name
+                             for utterance in test_data[Column.utterance]]
 
         f1_result = f1_score(test_data[Column.label], test_data[result], average='macro',
                              labels=[x.name for x in UtteranceType], zero_division=1)
         acc_result = accuracy_score(test_data[Column.label], test_data[result])
+
         return f1_result, acc_result

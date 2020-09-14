@@ -3,61 +3,59 @@ from pathlib import Path
 from typing import List
 from pandas.core.frame import DataFrame
 import pickle
-from restaurant_assistant.textclass.utterance_classifier import UtteranceClassifier,UtteranceType
+from restaurant_assistant.textclass.utterance_classifier import UtteranceClassifier, UtteranceType
 from sklearn import tree
 from restaurant_assistant.data_processing.data_loader import Column
-
 
 
 CONVERTED = 'converted'
 NR_LABEL = 'nr_label'
 MODEL_LOCATION = Path(__file__).parent.parent.parent.joinpath('data', 'tree_model.trm')
 
+
 class DecisionTreeClassifier(UtteranceClassifier):
-    
+
     def __init__(self):
         self.words = list()
         self.model = None
-        
-       
+
     def initialize(self, data):
-        
-        self.process_data(data)  
+
+        self.process_data(data)
         self.model = tree.DecisionTreeClassifier()
-        
+
         print('Do you want to load a model from a previous run? Enter y/n')
         answer = input().lower()
-        
+
         if answer == 'y':
-            self.model = pickle.load(open(MODEL_LOCATION,'rb'))
+            self.model = pickle.load(open(MODEL_LOCATION, 'rb'))
             print('Model loaded.')
         else:
             self.model = self.model.fit(X=numpy.array(data[CONVERTED].to_list()),
-                y=numpy.array(data[NR_LABEL].to_list()))
+                                        y=numpy.array(data[NR_LABEL].to_list()))
             print('Done training. Do you want to save the model? y/n')
             answer = input().lower()
             if answer == 'y':
-                pickle.dump(self.model, open(MODEL_LOCATION,'wb'))
+                pickle.dump(self.model, open(MODEL_LOCATION, 'wb'))
                 print(f'Network weights saved to {MODEL_LOCATION}.')
-                
 
     def classify(self, utterance):
         sample = self.convert_utterance(utterance)
         output = list(self.model.predict([sample])[0])
         max_index = output.index(max(output))
         return UtteranceType(max_index + 1)
-    
+
     def evaluate(self, data):
         data[CONVERTED] = [self.convert_utterance(x) for x in data[Column.utterance]]
         data[NR_LABEL] = [[0 if y != UtteranceType[x] else 1
                            for y in UtteranceType]
                           for x in data[Column.label]]
-        
+
         score = self.model.score(X=numpy.array(data[CONVERTED].to_list()),
-                y=numpy.array(data[NR_LABEL].to_list()))
-        
-        print(f'Model achieved {score} accuracy.')        
-        
+                                 y=numpy.array(data[NR_LABEL].to_list()))
+
+        print(f'Model achieved {score} accuracy.')
+
     def convert_utterance(self, utterance: str) -> List[int]:
         """
         Converts the utterance into a list corresponding to self.words, where words that occur
@@ -73,7 +71,6 @@ class DecisionTreeClassifier(UtteranceClassifier):
                 index = 0
             converted[index] = 1
         return converted
-    
 
     def process_data(self, data: DataFrame) -> None:
         """
@@ -89,4 +86,3 @@ class DecisionTreeClassifier(UtteranceClassifier):
         data[NR_LABEL] = [[0 if y != UtteranceType[x] else 1
                            for y in UtteranceType]
                           for x in data[Column.label]]
-

@@ -11,7 +11,6 @@ from tensorflow.keras.initializers import TruncatedNormal
 from restaurant_assistant.textclass.utterance_classifier import UtteranceClassifier, UtteranceType
 from restaurant_assistant.data_processing.data_loader import Column
 
-
 CONVERTED = 'converted'
 NR_LABEL = 'nr_label'
 WEIGHTS_LOCATION = Path(__file__).parent.parent.parent.joinpath('data', 'network_weights.h5')
@@ -37,7 +36,7 @@ class NeuralNetworkClassifier(UtteranceClassifier):
             history = self.network.fit(
                 x=numpy.array(data[CONVERTED].to_list()),
                 y=numpy.array(data[NR_LABEL].to_list()),
-                epochs=10,
+                epochs=6,
                 verbose=2,
                 validation_split=0.1,
                 batch_size=32)
