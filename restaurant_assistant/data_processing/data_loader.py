@@ -3,7 +3,7 @@ from pathlib import Path
 from enum import Enum, auto
 from typing import Tuple
 import numpy
-from sklearn.feature_extraction.text import CountVectorizer
+
 
 class Column(Enum):
     label = auto()
@@ -21,23 +21,7 @@ def load_dialog_data():
     return tuppled_data
 
 
-def tokenize_utterance(string):
-    tokens = list()
-    tokens = string.split()
-    return tokens
-
-def convert_to_bow(data):
-    vectorizer = CountVectorizer()
-    bow = vectorizer.fit_transform(data[Column.utterance])
-    bow = bow.toarray()
-    return bow
-
 def generate_dataframes(tuppled_data) -> Tuple[pd.DataFrame, pd.DataFrame]:
     df = pd.DataFrame.from_records(tuppled_data, columns=[Column.label, Column.utterance])
     train_data, test_data = numpy.split(df, [int(0.8*len(df))])
     return train_data, test_data
-
-
-if __name__ == "__main__":
-    data = load_dialog_data()
-    train , test = generate_dataframes(data)
