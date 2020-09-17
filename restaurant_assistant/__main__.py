@@ -1,6 +1,7 @@
 from restaurant_assistant.data_processing import data_loader
 from restaurant_assistant.textclass.decision_tree_classifier import DecisionTreeClassifier
-from restaurant_assistant.dialog_system.dsystem import DialogSystem
+from restaurant_assistant.dialog_system.DialogSystem import DialogSystem
+from restaurant_assistant.dialog_system.DialogStates import *
 
 def main():
     data = data_loader.load_dialog_data()
@@ -18,9 +19,9 @@ def main():
 
     print('Welcome to the text classifier.')
     
-    system = DialogSystem()
-    system.initialize(classifier)
-    system.execute_loop()
+    system = DialogSystem(classifier)
+    # system.initialize(InitState(),classifier)
+    system.executeState()
     
     # while(True):
     #     print('Please enter a sentence.')
