@@ -19,7 +19,6 @@ def main():
     while(True):
         utterance = input().lower()
         input_type = classifier.classify(utterance)
-        print(input_type, current_state)
         response, current_state = current_state.process_input(utterance, input_type, order)
         print(response)
 

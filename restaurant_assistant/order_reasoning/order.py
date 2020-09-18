@@ -1,6 +1,7 @@
 from enum import Enum, auto
 from typing import List, Tuple
 from pandas.core.series import Series
+from pandas import isna
 
 from restaurant_assistant.data_processing.data_loader import load_restaurant_info
 from restaurant_assistant.dialog.input_processor import find_keywords
@@ -97,7 +98,8 @@ class Order:
     def load_keywords(self):
         keywords = dict()
         for category in self.info:
-            keywords[category] = [x for x in set(self.data[category]) if len(str(x)) > 0]
+            keywords[category] = [x for x in set(self.data[category])
+                                  if len(str(x)) > 0 and not isna(x)]
 
         return keywords
 
@@ -119,6 +121,7 @@ class Order:
 
         if not self.options.empty:
             self.recommendation = self.options.iloc[0]
+            self.options = self.options[1:]
 
     def __str__(self):
         string = f'a restaurant serving {self.info[InfoType.food]} food in the ' \

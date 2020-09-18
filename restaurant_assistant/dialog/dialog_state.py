@@ -1,6 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Tuple
+from pandas import isna
 
 from restaurant_assistant.textclass.utterance_classifier import UtteranceType
 from restaurant_assistant.order_reasoning.order import Order, InfoType, info_keywords
@@ -173,12 +174,14 @@ class RecommendationState(DialogState):
                 return_str = repeat_str
             else:
                 for key, _ in matches:
+                    value = order.recommendation[key] \
+                        if not isna(order.recommendation[key]) else 'unknown'
                     if key is InfoType.phone:
-                        info.append(f'the phone number is {order.recommendation[InfoType.phone]}')
+                        info.append(f'the phone number is {value}')
                     if key is InfoType.addr:
-                        info.append(f'the address is {order.recommendation[InfoType.addr]}')
+                        info.append(f'the address is {value}')
                     if key is InfoType.postcode:
-                        info.append(f'the postal code is {order.recommendation[InfoType.postcode]}')
+                        info.append(f'the postal code is {value}')
 
                 return_str = ', '.join(info)
 
