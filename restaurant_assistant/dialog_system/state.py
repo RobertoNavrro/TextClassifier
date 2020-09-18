@@ -1,4 +1,3 @@
-# from restaurant_assistant.textclass.utterance_classifier import UtteranceType, UtteranceClassifier
 from restaurant_assistant.textclass.decision_tree_classifier import DecisionTreeClassifier
 import pandas as pd
 class State:

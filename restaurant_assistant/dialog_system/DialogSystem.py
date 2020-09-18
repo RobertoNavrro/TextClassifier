@@ -1,4 +1,3 @@
-from restaurant_assistant.textclass.utterance_classifier import UtteranceClassifier,UtteranceType
 from restaurant_assistant.textclass.decision_tree_classifier import DecisionTreeClassifier
 from restaurant_assistant.dialog_system.DialogStates import InitState, EndConversation
 import pandas as pd
@@ -7,7 +6,8 @@ class DialogSystem(object):
 
     def __init__(self, classifier:DecisionTreeClassifier()):
         self.classifier = classifier
-        self.stack = pd.DataFrame(columns = ['food','price','area'],index = ['0'])
+        dict = {'food' :[None],'price' : [None], 'area': [None]}
+        self.stack = pd.DataFrame(dict)
         self.currentState = InitState(self.stack)
     
     def executeState(self):
