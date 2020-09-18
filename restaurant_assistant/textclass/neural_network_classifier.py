@@ -3,6 +3,8 @@ from pathlib import Path
 from typing import List
 from matplotlib import pyplot
 from pandas.core.frame import DataFrame
+from sklearn.utils import compute_class_weight
+from tensorflow import config
 from tensorflow.keras.callbacks import History
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
@@ -11,6 +13,7 @@ from tensorflow.keras.initializers import TruncatedNormal
 from restaurant_assistant.textclass.utterance_classifier import UtteranceClassifier, UtteranceType
 from restaurant_assistant.data_processing.data_loader import Column
 
+config.set_visible_devices([], 'GPU')
 CONVERTED = 'converted'
 NR_LABEL = 'nr_label'
 WEIGHTS_LOCATION = Path(__file__).parent.parent.parent.joinpath('data', 'network_weights.h5')
@@ -25,6 +28,10 @@ class NeuralNetworkClassifier(UtteranceClassifier):
     def initialize(self, data: DataFrame):
         self.process_data(data)
         self.network = self.build_model(len(self.words))
+        class_weights = compute_class_weight(class_weight='balanced',
+                                             classes=[x.name for x in UtteranceType],
+                                             y=data[Column.label])
+        class_weights = {num: value for num, value in enumerate(class_weights)}
 
         print('Do you want to load a model from a previous run? Enter y/n')
         answer = input().lower()
@@ -36,10 +43,11 @@ class NeuralNetworkClassifier(UtteranceClassifier):
             history = self.network.fit(
                 x=numpy.array(data[CONVERTED].to_list()),
                 y=numpy.array(data[NR_LABEL].to_list()),
-                epochs=6,
+                epochs=8,
                 verbose=2,
                 validation_split=0.1,
-                batch_size=32)
+                batch_size=32,
+                class_weight=class_weights)
 
             print('Done training. Do you want to save the model? y/n')
             answer = input().lower()
