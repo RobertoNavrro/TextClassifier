@@ -13,7 +13,8 @@ class UserOrder():
     def __init__(self):
         self.preferences = {'food' :None,'price' : None, 'area': None}
         self.database = data_loader.load_restaurant_dataset()
-        self.recommendation = list()
+        self.recommendation = None
+        self.suggestion = self.database.copy()
         
     def stackFull(self):
         for value in self.preferences.values():

@@ -39,6 +39,7 @@ class AskPreference(State):
     def execute(self, utterance: str, type : UtteranceType):
         if type is UtteranceType.inform:
             self.order.identifyKeywords(utterance)
+            if(self.order.preferences)
             self.order.findMissingType()
             if self.order.stackFull() is True:
                 return AckOrder(self.order)
@@ -61,6 +62,7 @@ class AckOrder(State):
         if answer == 'y':
             return Suggest(self.order)
         if answer == 'n':
+            print("Please indicate what you want, either food, price or area.")
             return ChangePreference(self.order)
         else:
             print("Sorry I did not understand what you said, please try again.")
@@ -76,10 +78,9 @@ class Suggest(State):
         
 class ChangePreference(State):
     def execute(self, utterance: str, type : UtteranceType):
-        print("Please tell us ")
-        pass
+        return AskPreference
     
     
 class EndConversation(State):
     def execute(self, utterance: str, type : UtteranceType):
-        return EndConversation(self.stack)
+        return None
