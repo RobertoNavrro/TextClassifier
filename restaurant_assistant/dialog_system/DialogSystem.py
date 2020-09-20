@@ -6,7 +6,7 @@ class DialogSystem(object):
 
     def __init__(self, classifier:DecisionTreeClassifier()):
         self.classifier = classifier
-        dict = {'food' :[None],'price' : [None], 'area': [None]}
+      
         self.stack = pd.DataFrame(dict)
         self.currentState = InitState(self.stack)
     

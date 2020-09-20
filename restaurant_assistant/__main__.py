@@ -2,6 +2,7 @@ from restaurant_assistant.data_processing import data_loader
 from restaurant_assistant.textclass.decision_tree_classifier import DecisionTreeClassifier
 from restaurant_assistant.dialog_system.DialogSystem import DialogSystem
 from restaurant_assistant.dialog_system.DialogStates import *
+from restaurant_assistant.dialog_system.order import UserOrder
 
 def main():
     data = data_loader.load_dialog_data()
@@ -18,17 +19,17 @@ def main():
         print(f'Accuracy: {acc_result}')
 
     print('Welcome to the text classifier.')
-    
-    system = DialogSystem(classifier)
-    # system.initialize(InitState(),classifier)
-    system.executeState()
-    
-    # while(True):
-    #     print('Please enter a sentence.')
-    #     answer = input().lower()
-    #     utterance_type = classifier.classify(answer)
-    #     print(f'That utterance is of type {utterance_type.name}.')
 
+    order = UserOrder()
+    current = InitState(order)
+    
+    res_data = data_loader.load_restaurant_dataset()
+    while(True):
+        answer = input().lower()
+        utterance_type = classifier.classify(answer)
+        current = current.execute(answer,utterance_type)
+        if type(current) is type(EndConversation):
+            break
 
 if __name__ == "__main__":
     main()

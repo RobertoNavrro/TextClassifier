@@ -21,6 +21,11 @@ def load_dialog_data():
     return tuppled_data
 
 
+def load_restaurant_dataset():
+    path = str(Path(__file__).parent.parent.parent.joinpath('data', 'restaurant_info.csv'))
+    data = pd.read_csv(path)
+    return data
+
 def generate_dataframes(tuppled_data) -> Tuple[pd.DataFrame, pd.DataFrame]:
     df = pd.DataFrame.from_records(tuppled_data, columns=[Column.label, Column.utterance])
     train_data, test_data = numpy.split(df, [int(0.8*len(df))])
