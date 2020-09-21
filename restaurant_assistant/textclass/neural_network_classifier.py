@@ -43,7 +43,7 @@ class NeuralNetworkClassifier(UtteranceClassifier):
             history = self.network.fit(
                 x=numpy.array(data[CONVERTED].to_list()),
                 y=numpy.array(data[NR_LABEL].to_list()),
-                epochs=8,
+                epochs=10,
                 verbose=2,
                 validation_split=0.1,
                 batch_size=32,
@@ -87,7 +87,8 @@ class NeuralNetworkClassifier(UtteranceClassifier):
 
         :param data: training data. Not yet separated from validation data
         """
-        all_words = list(set([y for x in data[Column.utterance] for y in x.lower().split()]))
+        all_words = sorted(list(set([y for x in data[Column.utterance]
+                                     for y in x.lower().split()])))
         all_words.insert(0, None)
         self.words = all_words
 

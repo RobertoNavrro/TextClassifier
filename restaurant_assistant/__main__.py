@@ -1,7 +1,5 @@
 from restaurant_assistant.data_processing import data_loader
-from restaurant_assistant.textclass.decision_tree_classifier import DecisionTreeClassifier
 from restaurant_assistant.textclass.neural_network_classifier import NeuralNetworkClassifier
-from restaurant_assistant.textclass.keyword_classifier import KeywordClassifier
 from restaurant_assistant.dialog.dialog_state import StartState
 from restaurant_assistant.order_reasoning.order import Order
 
@@ -9,7 +7,7 @@ from restaurant_assistant.order_reasoning.order import Order
 def main():
     data = data_loader.load_dialog_data()
     train_data, test_data = data_loader.generate_dataframes(data)
-    classifier = KeywordClassifier()
+    classifier = NeuralNetworkClassifier()
     classifier.initialize(train_data)
 
     print('Welcome to the restaurant assistant. You can ask for restaurants by type of food, '

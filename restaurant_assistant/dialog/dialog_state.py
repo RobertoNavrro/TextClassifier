@@ -88,7 +88,7 @@ class DialogState(ABC):
 
         else:
             return_str = f'{recommendation[InfoType.restaurantname]} serves '\
-                f'{recommendation[InfoType.food]}, is in {recommendation[InfoType.area]} '\
+                f'{recommendation[InfoType.food]}, is in the {recommendation[InfoType.area]} '\
                 f'and the prices are {recommendation[InfoType.pricerange]}.'
             next_state = RecommendationState()
 
@@ -165,6 +165,7 @@ class RecommendationState(DialogState):
 
         if input_type is UtteranceType.reqmore:
             return_str, next_state = self.give_new_recommendation(order)
+
         elif input_type is UtteranceType.request:
             info = list()
             matches = find_keywords({key: info_keywords[key] for key in

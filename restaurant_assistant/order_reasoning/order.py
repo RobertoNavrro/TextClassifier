@@ -1,6 +1,8 @@
 from enum import Enum, auto
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from pandas.core.series import Series
+from pandas.core.frame import DataFrame
+from pandas.core.reshape.merge import merge
 from pandas import isna
 
 from restaurant_assistant.data_processing.data_loader import load_restaurant_info
@@ -26,13 +28,23 @@ info_keywords = {InfoType.pricerange: ['cost', 'price', 'priced', 'range'],
 
 
 class Order:
+    """
+    Class to keep track of the order of the user and the possible recommendations.
+
+    :var Dict[InfoType, str] preference: maps info type to the user preference
+    :var DataFrame data: the data of all restaurants. Columns of type InfoType
+    :var Dict[InfoType, List[str]] value_options: maps info type to words that occur in
+        its column in the data
+    :var DataFrame options: All options given the current preferences
+    :var Series recommendation: the row of the restaurant that is recommended
+    """
 
     def __init__(self):
-        self.info = {key: None for key in [InfoType.food, InfoType.pricerange, InfoType.area]}
+        self.preference = {key: None for key in [InfoType.food, InfoType.pricerange, InfoType.area]}
         self.data = load_restaurant_info()
         self.data.columns = [InfoType[x] for x in self.data.columns]
-        self.keywords = self.load_keywords()
-        self.options = self.data.copy()
+        self.value_options = self.load_value_options()
+        self.options = None
         self.recommendation = None
 
     def process_inform(self, utterance: str) -> List[Tuple[InfoType, str]]:
@@ -40,17 +52,17 @@ class Order:
         Processes the new request and extracts any new information. All categories that are changed
         are returned.
 
-        :return: A list of which values have been changed as tuples (info type, new value)
+        :return: A list of changed values as tuples (info type, new value)
         """
         self.reset()
         changes = list()
-        new_keywords = find_keywords(self.keywords,
-                                     {key: info_keywords[key] for key in self.info},
+        new_keywords = find_keywords(self.value_options,
+                                     {key: info_keywords[key] for key in self.preference},
                                      utterance)
         for info_type, keyword in new_keywords:
-            if self.info[info_type] != keyword:
+            if self.preference[info_type] != keyword:
                 changes.append((info_type, keyword))
-                self.info[info_type] = keyword
+                self.preference[info_type] = keyword
 
         return changes
 
@@ -59,24 +71,26 @@ class Order:
         Processes the input and resets all categories that are found. All categories that are
         changed are returned.
 
-        :return: A list of which values have been changed
+        :return: A list of changed values
         """
         self.reset()
         changes = list()
-        new_keywords = find_keywords(self.keywords,
-                                     {key: info_keywords[key] for key in self.info},
+        new_keywords = find_keywords(self.value_options,
+                                     {key: info_keywords[key] for key in self.preference},
                                      utterance)
         for info_type, _ in new_keywords:
-            changes.append((info_type, self.info[info_type]))
-            self.info[info_type] = None
+            changes.append((info_type, self.preference[info_type]))
+            self.preference[info_type] = None
 
         return changes
 
-    def get_empty_preferences(self):
+    def get_empty_preferences(self) -> List[InfoType]:
         """
         Get all info types for which a preference hasn't been given yet.
+
+        :return: list of info types whose preference is unknown
         """
-        empty_preferences = [info_type for info_type, preference in self.info.items()
+        empty_preferences = [info_type for info_type, preference in self.preference.items()
                              if preference is None]
         return empty_preferences
 
@@ -95,11 +109,17 @@ class Order:
 
         return self.recommendation
 
-    def load_keywords(self):
+    def load_value_options(self) -> Dict[InfoType, List[str]]:
+        """
+        Puts all unique words that occur in the data that can be picked by the user,
+        food, area and price range, into a dict mapping the column name to its possible values.
+
+        :return: a dict mapping column name to its possible values
+        """
         keywords = dict()
-        for category in self.info:
-            keywords[category] = [x for x in set(self.data[category])
-                                  if len(str(x)) > 0 and not isna(x)]
+        for category in self.preference:
+            keywords[category] = list(set([x for x in set(self.data[category])
+                                           if len(str(x)) > 0 and not isna(x)]))
 
         return keywords
 
@@ -115,15 +135,13 @@ class Order:
         Computes and stores all options for restaurants. Sets the first option as a recommendation
         if there are options available.
         """
-        self.options = self.data
-        for info_type, pref in self.info.items():
-            self.options = self.options[self.options[info_type] == pref].copy()
+        self.options = merge(DataFrame(self.preference, index=[0]), self.data)
 
         if not self.options.empty:
             self.recommendation = self.options.iloc[0]
             self.options = self.options[1:]
 
     def __str__(self):
-        string = f'a restaurant serving {self.info[InfoType.food]} food in the ' \
-            f'{self.info[InfoType.area]}, in the price range {self.info[InfoType.pricerange]}'
-        return string
+        return f'a restaurant serving {self.preference[InfoType.food]} food in the ' \
+            f'{self.preference[InfoType.area]}, in the price range '\
+            f'{self.preference[InfoType.pricerange]}'
