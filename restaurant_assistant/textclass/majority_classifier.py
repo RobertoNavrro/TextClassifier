@@ -4,7 +4,7 @@ from restaurant_assistant.data_processing.data_loader import Column
 
 
 class MajorityClassifier(UtteranceClassifier):
-    
+
     def __init__(self):
         self.answer = None
 
