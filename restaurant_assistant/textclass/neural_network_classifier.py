@@ -1,11 +1,9 @@
 import numpy
 from pathlib import Path
 from typing import List
-from matplotlib import pyplot
 from pandas.core.frame import DataFrame
 from sklearn.utils import compute_class_weight
 from tensorflow import config
-from tensorflow.keras.callbacks import History
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.initializers import TruncatedNormal
@@ -54,8 +52,6 @@ class NeuralNetworkClassifier(UtteranceClassifier):
             if answer == 'y':
                 self.network.save_weights(WEIGHTS_LOCATION)
                 print(f'Network weights saved to {WEIGHTS_LOCATION}.')
-
-            self.plot_history(history)
 
     def classify(self, utterance):
         converted = self.convert_utterance(utterance)
@@ -116,31 +112,3 @@ class NeuralNetworkClassifier(UtteranceClassifier):
 
         model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
         return model
-
-    @staticmethod
-    def plot_history(history: History) -> None:
-        """
-        Makes plots to show the accuracy and the loss.
-        Can be removed for final version.
-
-        :param history: object containing loss and accuracy data from the training session
-        """
-        acc = history.history['accuracy']
-        val_acc = history.history['val_accuracy']
-        loss = history.history['loss']
-        val_loss = history.history['val_loss']
-        x = range(1, len(acc) + 1)
-
-        pyplot.figure(figsize=(12, 5))
-        pyplot.subplot(1, 2, 1)
-        pyplot.plot(x, acc, 'b', label='Training acc')
-        pyplot.plot(x, val_acc, 'r', label='Validation acc')
-        pyplot.title('Training and validation accuracy')
-        pyplot.legend()
-        pyplot.subplot(1, 2, 2)
-        pyplot.plot(x, loss, 'b', label='Training loss')
-        pyplot.plot(x, val_loss, 'r', label='Validation loss')
-        pyplot.title('Training and validation loss')
-        pyplot.legend()
-
-        pyplot.show()
