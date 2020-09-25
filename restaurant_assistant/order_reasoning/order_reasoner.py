@@ -27,20 +27,18 @@ class Rule():
         self.consequent = consequent
         self.value = value
 
-    def apply(self, data: Series, requests: List[Tuple[str, bool]]) \
-            -> Tuple[bool, Tuple[str, bool]]:
+    def apply(self, data: Series, requests: List[Tuple[str, bool]]) -> Tuple[bool, bool]:
         """
         Applies the rule to the given row. Returns whether values were changed and whether it's
         relevant for the request
 
         :var data: the row with information about a single restaurant
         :var requests: list of properties and their values which are requested
-
         :return: whether the row should be changed and whether the consequent matches one of the
-            requests as a tuple (property, bool same value)
+            requests
         """
         new_value = False
-        relevant = None
+        same_value = None
         match = False
 
         if all(data[key] == value for key, value in self.antecedent.items()):
@@ -50,9 +48,9 @@ class Rule():
         if match:
             for request, value in requests:
                 if request == self.consequent:
-                    relevant = (request, self.value == value)
+                    same_value = self.value == value
 
-        return new_value, relevant
+        return new_value, same_value
 
     def __str__(self):
         str_antecedent = {x.name if isinstance(x, InfoType) else x: value
@@ -73,16 +71,16 @@ def get_rules() -> List[Rule]:
     rule5 = Rule(5, {'busy': True}, 'romantic', False)
     rule6 = Rule(6, {'long time': True}, 'romantic', True)
     rule7 = Rule(7, {InfoType.food: 'french'}, 'big portions', False)
-    rule16 = Rule(16, {InfoType.food: 'chinese'}, 'big portions', True)
-    rule14 = Rule(14, {InfoType.food_quality: 'good', InfoType.pricerange: 'moderate'},
-                  'big portions', True)
-    rule8 = Rule(8, {InfoType.diet: 'meat', InfoType.pricerange: 'cheap'}, 'big portions', True)
-    rule9 = Rule(9, {InfoType.area: 'centre', InfoType.diet: 'vegan'}, 'busy', True)
-    rule10 = Rule(10, {'big portions': True, InfoType.diet: 'meat'}, 'healthy', False)
-    rule11 = Rule(11, {InfoType.diet: 'vegetarian'}, 'healthy', True)
-    rule12 = Rule(12, {'healthy': True}, 'children', True)
-    rule13 = Rule(13, {'big portions': True, 'children': True}, 'long time', True)
-    rule15 = Rule(15, {InfoType.diet: 'vegan', 'big portions': True}, 'healthy', True)
+    rule8 = Rule(8, {InfoType.food: 'chinese'}, 'big portions', True)
+    rule9 = Rule(9, {InfoType.food_quality: 'good', InfoType.pricerange: 'moderate'},
+                 'big portions', True)
+    rule10 = Rule(10, {InfoType.diet: 'meat', InfoType.pricerange: 'cheap'}, 'big portions', True)
+    rule11 = Rule(11, {InfoType.area: 'centre', InfoType.diet: 'vegan'}, 'busy', True)
+    rule12 = Rule(12, {'big portions': True, InfoType.diet: 'meat'}, 'healthy', False)
+    rule13 = Rule(13, {InfoType.diet: 'vegetarian'}, 'healthy', True)
+    rule14 = Rule(14, {'healthy': True}, 'children', True)
+    rule15 = Rule(15, {'big portions': True, 'children': True}, 'long time', True)
+    rule16 = Rule(16, {InfoType.diet: 'vegan', 'big portions': True}, 'healthy', True)
 
     return [rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9, rule10, rule11, rule12,
             rule13, rule14, rule15, rule16]
@@ -98,28 +96,24 @@ def process_extra(utterance: str, options: DataFrame, value_options: Dict[InfoTy
     :return: list of strings with one string for each restaurant, denoting the applied rules
         and  whether they are recommended.
     """
-    extras_values = {key: value for key, value in value_options.items()
-                     if key in [InfoType.food_quality, InfoType.diet]}
-    help_values = {key: value for key, value in info_keywords.items()
-                   if key in [InfoType.food_quality, InfoType.diet]}
+    extra_keys = [InfoType.food_quality, InfoType.diet]
+    extras_values = {key: value for key, value in value_options.items() if key in extra_keys}
+    help_values = {key: value for key, value in info_keywords.items() if key in extra_keys}
 
     column_values = find_keywords(extras_values, help_values, utterance)
-
-    other_values = [(x, True) for x in extras if x in utterance]
-    column_values.extend(other_values)
-
+    column_values.extend((x, True) for x in extras if x in utterance)
     for extra in extras:
         options[extra] = Series(dtype='bool')
 
     rules = get_rules()
     return_strs = list()
+    rec = '{} is {} recommended, based on preference {}.\n'
 
     for i in options.index:
         rest_str = f'{i}: {Order.str_restaurant(options.loc[i])}\n'
         for key, value in column_values:
             if key in options.columns and options.at[i, key] == value:
-                rest_str = rest_str + f'{options.at[i, InfoType.restaurantname]} is ' \
-                        f'recommended, based on preference {key.name}: {value}.\n'
+                rest_str += rec.format(options.at[i, InfoType.restaurantname], '', value)
                 break
         else:
             loop = True
@@ -127,15 +121,15 @@ def process_extra(utterance: str, options: DataFrame, value_options: Dict[InfoTy
             while(loop):
                 loop = False
                 for rule in rules:
-                    new_value, relevant_request = rule.apply(options.loc[i], column_values)
-                    if relevant_request:
+                    new_value, match = rule.apply(options.loc[i], column_values)
+                    if match is not None:
                         stack.append(rule)
                         for rule in stack:
-                            rest_str = rest_str + f'{str(rule)}\n'
+                            rest_str += f'{str(rule)}\n'
 
-                        rec = '' if relevant_request[1] else 'not '
-                        rest_str = rest_str + f'{options.at[i, InfoType.restaurantname]} is {rec}' \
-                            f'recommended, based on preference {relevant_request[0]}.\n'
+                        verdict = '' if match else 'not '
+                        rest_str += rec.format(options.at[i, InfoType.restaurantname], verdict,
+                                               rule.consequent)
 
                         loop = False
                         break
