@@ -1,16 +1,14 @@
 from __future__ import annotations
 import Levenshtein
-from typing import Dict, List, Tuple, TYPE_CHECKING
+from typing import Dict, List, Tuple, Any
 
-if TYPE_CHECKING:
-    from restaurant_assistant.order_reasoning.order import InfoType
 
 MATCH_DIST = 2
 
 
-def find_keywords(literal_match: Dict[InfoType, List[str]],
-                  help_match: Dict[InfoType, List[str]],
-                  utterance: str) -> List[Tuple[InfoType, str]]:
+def find_keywords(literal_match: Dict[Any, List[str]],
+                  help_match: Dict[Any, List[str]],
+                  utterance: str) -> List[Tuple[Any, str]]:
     """
     First attempts to find a precise match between a word in the utterance and literal_match.
     If this is not found, the utterance is searched for words in help_match. If these are found,

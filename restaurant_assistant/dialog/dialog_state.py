@@ -6,6 +6,7 @@ from pandas import isna
 from restaurant_assistant.textclass.utterance_classifier import UtteranceType
 from restaurant_assistant.order_reasoning.order import Order, InfoType, info_keywords
 from restaurant_assistant.dialog.input_processor import find_keywords
+from restaurant_assistant.order_reasoning.order_reasoner import process_extra
 
 
 pref_str = {InfoType.food: 'What kind of food would you like?',
@@ -87,9 +88,8 @@ class DialogState(ABC):
             next_state = RecommendationState()
 
         else:
-            return_str = f'{recommendation[InfoType.restaurantname]} serves '\
-                f'{recommendation[InfoType.food]}, is in the {recommendation[InfoType.area]} '\
-                f'and the prices are {recommendation[InfoType.pricerange]}.'
+            return_str = Order.str_restaurant(order.recommendation) + \
+                ' Do you want this restaurant?'
             next_state = RecommendationState()
 
         return return_str, next_state
@@ -139,7 +139,9 @@ class ConfirmOrderState(DialogState):
 
     def process_input(self, utterance, input_type, order):
         if input_type is UtteranceType.affirm:
-            return_str, next_state = self.give_new_recommendation(order)
+            order.compute_options()
+            return_str = 'Do you have any additional requirements? Please state them if applicable.'
+            next_state = AdditionalRequirementState()
 
         elif input_type in [UtteranceType.negate, UtteranceType.deny]:
             return_str, next_state = self.process_deny(utterance, order)
@@ -154,19 +156,73 @@ class ConfirmOrderState(DialogState):
         return return_str, next_state
 
 
+class AdditionalRequirementState(DialogState):
+    """
+    Processes any additional requirements if given, moving to GetChoiceState.
+    If not, a random recommendation is given, and move to either AskPreference or Recommendation
+    based on whether there's an option.
+    """
+    def process_input(self, utterance, input_type, order):
+        if input_type is UtteranceType.negate:
+            return_str, next_state = self.give_new_recommendation(order)
+        else:
+            rest_strs = process_extra(utterance, order.options, order.value_options)
+            return_str = 'The following options are available, please choose by number:\n\n'
+            return_str = return_str + '\n'.join(rest_strs)
+            next_state = GetChoiceState()
+
+        return return_str, next_state
+
+
+class GetChoiceState(DialogState):
+    """
+    State in which the restaurant choice of the user is processed. If processed correctly,
+    the next state is InformChoice.
+    """
+    def process_input(self, utterance, input_type, order):
+        try:
+            choice = int(utterance)
+            order.set_recommendation(choice)
+            return_str = f'You have chosen {order.recommendation[InfoType.restaurantname]}. ' \
+                'You can ask for their phone number, address and postal code.'
+            next_state = InformChoiceState()
+
+        except Exception:
+            return_str = repeat_str
+            next_state = GetChoiceState()
+
+        return return_str, next_state
+
+
 class RecommendationState(DialogState):
     """
-    State that handles queries about the given recommendation. The order cannot be changed
-    anymore at this point.
+    State that gives a recommendation out of the possible options. The order cannot be changed
+    anymore at this point. Can move to InformChoice if the restaurant is accepted.
+    """
+    def process_input(self, utterance, input_type, order):
+        if input_type in [UtteranceType.reqmore, UtteranceType.negate]:
+            return_str, next_state = self.give_new_recommendation(order)
+
+        elif input_type is UtteranceType.affirm:
+            return_str = f'You have chosen {order.recommendation[InfoType.restaurantname]}. ' \
+                'You can ask for their phone number, address and postal code.'
+            next_state = InformChoiceState()
+
+        else:
+            return_str = repeat_str
+            next_state = RecommendationState()
+
+        return return_str, next_state
+
+
+class InformChoiceState(DialogState):
+    """
+    State that answers questions about the chosen restaurant.
     """
 
     def process_input(self, utterance, input_type, order):
-        next_state = RecommendationState()
-
-        if input_type is UtteranceType.reqmore:
-            return_str, next_state = self.give_new_recommendation(order)
-
-        elif input_type is UtteranceType.request:
+        next_state = InformChoiceState()
+        if input_type is UtteranceType.request:
             info = list()
             matches = find_keywords({key: info_keywords[key] for key in
                                      [InfoType.phone, InfoType.addr, InfoType.postcode]},
@@ -178,11 +234,11 @@ class RecommendationState(DialogState):
                     value = order.recommendation[key] \
                         if not isna(order.recommendation[key]) else 'unknown'
                     if key is InfoType.phone:
-                        info.append(f'the phone number is {value}')
+                        info.append(f'the phone number is {value}.')
                     if key is InfoType.addr:
-                        info.append(f'the address is {value}')
+                        info.append(f'the address is {value}.')
                     if key is InfoType.postcode:
-                        info.append(f'the postal code is {value}')
+                        info.append(f'the postal code is {value}.')
 
                 return_str = ', '.join(info)
 

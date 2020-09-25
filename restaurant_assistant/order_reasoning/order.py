@@ -17,6 +17,8 @@ class InfoType(Enum):
     phone = auto()
     addr = auto()
     postcode = auto()
+    food_quality = auto()
+    diet = auto()
 
 
 info_keywords = {InfoType.pricerange: ['cost', 'price', 'priced', 'range'],
@@ -24,7 +26,9 @@ info_keywords = {InfoType.pricerange: ['cost', 'price', 'priced', 'range'],
                  InfoType.food: ['food', 'cuisine', 'serving', 'serve'],
                  InfoType.phone: ['phone', 'number'],
                  InfoType.addr: ['address', 'location', 'where'],
-                 InfoType.postcode: ['postcode', 'postal', 'code']}
+                 InfoType.postcode: ['postcode', 'postal', 'code'],
+                 InfoType.food_quality: ['food', 'quality', 'reviews'],
+                 InfoType.diet: ['diet']}
 
 
 class Order:
@@ -46,6 +50,7 @@ class Order:
         self.value_options = self.load_value_options()
         self.options = None
         self.recommendation = None
+        self.extras = None
 
     def process_inform(self, utterance: str) -> List[Tuple[InfoType, str]]:
         """
@@ -103,11 +108,15 @@ class Order:
         """
         if self.options is None:  # Options haven't been computed yet
             self.compute_options()
-        elif not self.options.empty:  # Options were already computed and there is one left
+        if not self.options.empty:  # Options were already computed and there is one left
             self.recommendation = self.options.iloc[0]
             self.options = self.options[1:]
 
         return self.recommendation
+
+    def set_recommendation(self, choice: int):
+        self.recommendation = self.options.iloc[choice]
+        self.options = self.options.drop([choice])
 
     def load_value_options(self) -> Dict[InfoType, List[str]]:
         """
@@ -132,16 +141,18 @@ class Order:
 
     def compute_options(self) -> None:
         """
-        Computes and stores all options for restaurants. Sets the first option as a recommendation
-        if there are options available.
+        Computes and stores all options for restaurants.
         """
         self.options = merge(DataFrame(self.preference, index=[0]), self.data)
-
-        if not self.options.empty:
-            self.recommendation = self.options.iloc[0]
-            self.options = self.options[1:]
 
     def __str__(self):
         return f'a restaurant serving {self.preference[InfoType.food]} food in the ' \
             f'{self.preference[InfoType.area]}, in the price range '\
             f'{self.preference[InfoType.pricerange]}'
+
+    @staticmethod
+    def str_restaurant(row: Series):
+        return f'{row[InfoType.restaurantname]} serves '\
+                f'{row[InfoType.food]}, is in the {row[InfoType.area]} '\
+                f'and the prices are {row[InfoType.pricerange]}. Additionally, their food is '\
+                f'{row[InfoType.food_quality]} and with {row[InfoType.diet]} diet options.'
