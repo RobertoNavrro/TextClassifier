@@ -116,28 +116,34 @@ def process_extra(utterance: str, options: DataFrame, value_options: Dict[InfoTy
 
     for i in options.index:
         rest_str = f'{i}: {Order.str_restaurant(options.loc[i])}\n'
-        loop = True
-        stack = list()
-        while(loop):
-            loop = False
-            for rule in rules:
-                new_value, relevant_request = rule.apply(options.loc[i], column_values)
-                if relevant_request:
-                    stack.append(rule)
-                    for rule in stack:
-                        rest_str = rest_str + f'{str(rule)}\n'
+        for key, value in column_values:
+            if key in options.columns and options.at[i, key] == value:
+                rest_str = rest_str + f'{options.at[i, InfoType.restaurantname]} is ' \
+                        f'recommended, based on preference {key.name}: {value}.\n'
+                break
+        else:
+            loop = True
+            stack = list()
+            while(loop):
+                loop = False
+                for rule in rules:
+                    new_value, relevant_request = rule.apply(options.loc[i], column_values)
+                    if relevant_request:
+                        stack.append(rule)
+                        for rule in stack:
+                            rest_str = rest_str + f'{str(rule)}\n'
 
-                    rec = '' if relevant_request[1] else 'not '
-                    rest_str = rest_str + f'{options.at[i, InfoType.restaurantname]} is {rec}' \
-                        f'recommended, based on preference {relevant_request[0]}.\n'
+                        rec = '' if relevant_request[1] else 'not '
+                        rest_str = rest_str + f'{options.at[i, InfoType.restaurantname]} is {rec}' \
+                            f'recommended, based on preference {relevant_request[0]}.\n'
 
-                    loop = False
-                    break
+                        loop = False
+                        break
 
-                if new_value:
-                    options.at[i, rule.consequent] = rule.value
-                    stack.append(rule)
-                    loop = True
+                    if new_value:
+                        options.at[i, rule.consequent] = rule.value
+                        stack.append(rule)
+                        loop = True
 
         return_strs.append(rest_str)
 

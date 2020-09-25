@@ -61,7 +61,7 @@ class Order:
         """
         self.reset()
         changes = list()
-        new_keywords = find_keywords(self.value_options,
+        new_keywords = find_keywords({key: self.value_options[key] for key in self.preference},
                                      {key: info_keywords[key] for key in self.preference},
                                      utterance)
         for info_type, keyword in new_keywords:
@@ -80,7 +80,7 @@ class Order:
         """
         self.reset()
         changes = list()
-        new_keywords = find_keywords(self.value_options,
+        new_keywords = find_keywords({key: self.value_options[key] for key in self.preference},
                                      {key: info_keywords[key] for key in self.preference},
                                      utterance)
         for info_type, _ in new_keywords:
@@ -126,7 +126,7 @@ class Order:
         :return: a dict mapping column name to its possible values
         """
         keywords = dict()
-        for category in self.preference:
+        for category in list(self.preference.keys()) + [InfoType.diet, InfoType.food_quality]:
             keywords[category] = list(set([x for x in set(self.data[category])
                                            if len(str(x)) > 0 and not isna(x)]))
 
