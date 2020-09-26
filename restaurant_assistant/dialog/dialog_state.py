@@ -58,13 +58,15 @@ class DialogState(ABC):
         """
         next_state = AskPreferenceState()
         changes = order.process_deny(utterance)
-        if not changes:
-            return repeat_str
 
-        changed_info = ', '.join([f'{info_type.name} is no longer {old_value}'
-                                  for info_type, old_value in changes])
-        empty = order.get_empty_preferences()
-        return_str = '. '.join([changed_info, pref_str[empty[0]]])
+        if not changes:
+            return_str = "Please state the property that you want to change, like 'no Italian'."
+        else:
+            changed_info = ', '.join([f'{info_type.name} is no longer {old_value}'
+                                      for info_type, old_value in changes])
+            empty = order.get_empty_preferences()
+            return_str = '. '.join([changed_info, pref_str[empty[0]]])
+
         return return_str, next_state
 
     def give_new_recommendation(self, order: Order) -> Tuple[str, DialogState]:
