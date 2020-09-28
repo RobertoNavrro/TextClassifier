@@ -41,7 +41,6 @@ class DialogState(ABC):
         empty_prefs = order.get_empty_preferences()
         order.compute_options()
         option_count = order.options.shape[0]
-        # print(f'Number of options:{option_count}')
         if option_count >= 2:
             if not empty_prefs:
                 next_state = ConfirmOrderState()
@@ -54,7 +53,8 @@ class DialogState(ABC):
             return_str = f'You are looking for {str(order)}. Is this correct?'
         elif option_count == 0:
             next_state = OrderConflictState()
-            return_str = f'There are no matches for {str(order)}. Would you like to see alternatives?'
+            return_str = f'There are no matches for {str(order)}. Would you like to '\
+                'see alternatives?'
 
         return return_str, next_state
 
@@ -105,6 +105,7 @@ class DialogState(ABC):
 
         return return_str, next_state
 
+
 class StartState(DialogState):
     """
     The starting state, which processes either the greeting or the first inform action of the
@@ -122,6 +123,7 @@ class StartState(DialogState):
             return_str = repeat_str
 
         return return_str, next_state
+
 
 class AskPreferenceState(DialogState):
     """
@@ -185,24 +187,20 @@ class AdditionalRequirementState(DialogState):
 
 class OrderConflictState(DialogState):
     """
-    The state in which we identify no restaurant matches the user's desire. If we obtain an affirmation,
-    we display possible alternatives, otherwise we request the user to change preferences.
+    The state in which we identify no restaurant matches the user's desire. If we obtain an
+    affirmation, we display possible alternatives, otherwise we request the user to
+    change preferences.
     """
-    
     def process_input(self, utterance, input_type, order):
         if input_type is UtteranceType.affirm or input_type is UtteranceType.reqalts:
-            #function for displaying alternatives
             return_str = order.compute_alternatives()
             next_state = GetChoiceState()
         elif input_type is UtteranceType.negate:
-            return_str, next_state = self.process_deny(utterance,order)
-        elif input_type is UtteranceType.restart:
-            return_str = 'Welcome to the restaurant assistant. You can ask for restaurants by type of food, area and price range.'
-            next_state = StartState()
+            return_str, next_state = self.process_deny(utterance, order)
         else:
             return_str = repeat_str
             next_state = OrderConflictState()
-            
+
         return return_str, next_state
 
 
