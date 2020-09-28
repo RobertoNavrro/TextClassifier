@@ -92,11 +92,11 @@ def main():
                         dest='classifier', help='Choose which classifier to use to '
                         'classify the user input. Default is neural network.')
 
-    parser.add_argument('-t -test', action='store_true', default=True, dest='test',
+    parser.add_argument('-t -test', action='store_true', dest='test',
                         help='Test the performance of the classifier.')
 
-    parser.add_argument('-s --speech', action='store_true', default=True,
-                        dest='speech', help='Read all output out loud')
+    parser.add_argument('-s --speech', action='store_true', dest='speech',
+                        help='Read all output out loud')
 
     parser.add_argument('-n --nr_recs', type=int, default=1, dest='nr_recs',
                         help='Decide the maximum amount of recommendations that '
