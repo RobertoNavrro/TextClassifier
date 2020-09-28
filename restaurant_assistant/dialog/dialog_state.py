@@ -122,9 +122,6 @@ class StartState(DialogState):
 
         return return_str, next_state
 
-# class OneOptionState(DialogState):
-#     pass
-
 class AskPreferenceState(DialogState):
     """
     The state in which the user can add to or append their order. Can move to ConfirmOrder once
