@@ -181,7 +181,7 @@ class Order:
         :return: a List that contains all possible alternatives
         """
         self.options = DataFrame()
-        return_str = ""
+        return_str = "Here are the available options, please indicate which option number you desire:\n"
         alt_preference_list = {key: None for key in [InfoType.food, InfoType.pricerange, InfoType.area]}
         alt_preference = {key: None for key in [InfoType.food, InfoType.pricerange, InfoType.area]}
         
@@ -200,7 +200,11 @@ class Order:
                 self.options = concat([self.options,df_option])
         
         for order_index in range(self.options.shape[0]):
-            pass
+            option = self.options.iloc[order_index]
+            option_string = (f'{order_index}. A restaurant serving {option[InfoType.food]} food in the ' \
+            f'{option[InfoType.area]}, in the price range '\
+            f'{option[InfoType.pricerange]}\n')
+            return_str += option_string
         return return_str
     
 
