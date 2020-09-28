@@ -39,12 +39,22 @@ class DialogState(ABC):
         """
         order.process_inform(utterance)
         empty_prefs = order.get_empty_preferences()
-        if not empty_prefs:
+        order.compute_options()
+        option_count = order.options.shape[0]
+        # print(f'Number of options:{option_count}')
+        if option_count >= 2:
+            if not empty_prefs:
+                next_state = ConfirmOrderState()
+                return_str = f'You are looking for {str(order)}. Is this correct?'
+            else:
+                next_state = AskPreferenceState()
+                return_str = pref_str[empty_prefs[0]]
+        elif option_count == 1:
             next_state = ConfirmOrderState()
             return_str = f'You are looking for {str(order)}. Is this correct?'
-        else:
-            next_state = AskPreferenceState()
-            return_str = pref_str[empty_prefs[0]]
+        elif option_count == 0:
+            next_state = OrderConflictState()
+            return_str = f'There are no matches for {str(order)}. Would you like to see alternatives?'
 
         return return_str, next_state
 
@@ -58,13 +68,13 @@ class DialogState(ABC):
         """
         next_state = AskPreferenceState()
         changes = order.process_deny(utterance)
-        if not changes:
-            return repeat_str
-
-        changed_info = ', '.join([f'{info_type.name} is no longer {old_value}'
-                                  for info_type, old_value in changes])
-        empty = order.get_empty_preferences()
-        return_str = '. '.join([changed_info, pref_str[empty[0]]])
+        if len(changes) == 0:
+            return_str = "Please state the property that you want to change, like 'no Italian'."
+        else:
+            changed_info = ', '.join([f'{info_type.name} is no longer {old_value}'
+                                      for info_type, old_value in changes])
+            empty = order.get_empty_preferences()
+            return_str = '. '.join([changed_info, pref_str[empty[0]]])
         return return_str, next_state
 
     def give_new_recommendation(self, order: Order) -> Tuple[str, DialogState]:
@@ -94,7 +104,6 @@ class DialogState(ABC):
 
         return return_str, next_state
 
-
 class StartState(DialogState):
     """
     The starting state, which processes either the greeting or the first inform action of the
@@ -113,6 +122,8 @@ class StartState(DialogState):
 
         return return_str, next_state
 
+# class OneOptionState(DialogState):
+#     pass
 
 class AskPreferenceState(DialogState):
     """
@@ -171,6 +182,29 @@ class AdditionalRequirementState(DialogState):
             return_str = return_str + '\n'.join(rest_strs)
             next_state = GetChoiceState()
 
+        return return_str, next_state
+
+
+class OrderConflictState(DialogState):
+    """
+    The state in which we identify no restaurant matches the user's desire. If we obtain an affirmation,
+    we display possible alternatives, otherwise we request the user to change preferences.
+    """
+    
+    def process_input(self, utterance, input_type, order):
+        if input_type is UtteranceType.affirm or input_type is UtteranceType.reqalts:
+            #function for displaying alternatives
+            return_str = order.compute_alternatives()
+            next_state = GetChoiceState()
+        elif input_type is UtteranceType.negate:
+            return_str, next_state = self.process_deny(utterance,order)
+        elif input_type is UtteranceType.restart:
+            return_str = 'Welcome to the restaurant assistant. You can ask for restaurants by type of food, area and price range.'
+            next_state = StartState()
+        else:
+            return_str = repeat_str
+            next_state = OrderConflictState()
+            
         return return_str, next_state
 
 
