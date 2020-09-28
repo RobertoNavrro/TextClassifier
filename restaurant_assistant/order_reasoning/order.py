@@ -31,14 +31,18 @@ info_keywords = {InfoType.pricerange: ['cost', 'price', 'priced', 'range'],
                  InfoType.food_quality: ['food', 'quality', 'reviews'],
                  InfoType.diet: ['diet']}
 
-alternative_sets = {InfoType.pricerange: ['cheap,moderate','moderate,expensive'],
-                    InfoType.area: ['centre,north,east','centre,north,west','centre,south,west','centre,south,east'],
-                    InfoType.food: ['thai,chinese,korean,vietnamese,asian oriental',
-                                    'mediterranean,spanish,portuguese,italian,romanian,tuscan,catalan',
-                                    'french,european,bistro,swiss,gastropub,traditional',
-                                    'north american,steakhouse,british',
-                                    'lebanese,turkish,persian',
-                                    'international,modern european,fusion']}
+alternative_sets = {InfoType.pricerange: ['cheap,moderate', 'moderate,expensive'],
+                    InfoType.area: ['centre,north,east', 'centre,north,west', 'centre,south,west',
+                                    'centre,south,east'],
+                    InfoType.food: [
+                        'thai,chinese,korean,vietnamese,asian oriental',
+                        'mediterranean,spanish,portuguese,italian,romanian,tuscan,catalan',
+                        'french,european,bistro,swiss,gastropub,traditional',
+                        'north american,steakhouse,british',
+                        'lebanese,turkish,persian',
+                        'international,modern european,fusion']}
+
+
 class Order:
     """
     Class to keep track of the order of the user and the possible recommendations.
@@ -77,8 +81,8 @@ class Order:
                 changes.append((info_type, keyword))
                 self.preference[info_type] = keyword
 
-        return changes             
-                    
+        return changes
+
     def process_deny(self, utterance: str) -> List[InfoType]:
         """
         Processes the input and resets all categories that are found. All categories that are
@@ -146,24 +150,23 @@ class Order:
         """
         self.recommendation = None
         self.options = None
-    
+
     def query_options(self) -> None:
         """
         Updates the options query given the preferences. Rather than constantly merging
         with our large database, once we have our initial set of options, we continue to
         create subsets using our available options.
-        
+
         :return: None
         """
-        
-        current_preferences = {k:v for k,v in self.preference.items() if v is not None}
+        current_preferences = {k: v for k, v in self.preference.items() if v is not None}
         self.options = merge(DataFrame(current_preferences, index=[0]), self.options)
 
     def compute_options(self) -> None:
         """
         Computes and stores all options for restaurants.
         """
-        preference_copy = {k:v for k,v in self.preference.items() if v is not None}
+        preference_copy = {k: v for k, v in self.preference.items() if v is not None}
         if self.options is None:
             self.options = merge(DataFrame(preference_copy, index=[0]), self.data)
         else:
@@ -173,40 +176,40 @@ class Order:
         return f'a restaurant serving {self.preference[InfoType.food]} food in the ' \
             f'{self.preference[InfoType.area]}, in the price range '\
             f'{self.preference[InfoType.pricerange]}'
-    
+
     def compute_alternatives(self) -> str:
-        
         """
         Finds a list of available alternatives for the current order
         :return: a List that contains all possible alternatives
         """
         self.options = DataFrame()
-        return_str = "Here are the available options, please indicate which option number you desire:\n"
-        alt_preference_list = {key: None for key in [InfoType.food, InfoType.pricerange, InfoType.area]}
+        return_str = "Here are the available options, please indicate which option number " \
+            "you desire:\n"
+        alt_preference_list = {key: None for key in [InfoType.food, InfoType.pricerange,
+                                                     InfoType.area]}
         alt_preference = {key: None for key in [InfoType.food, InfoType.pricerange, InfoType.area]}
-        
+
         for info_type in self.preference.keys():
             for alt_string in alternative_sets[info_type]:
                 alt_options = alt_string.split(',')
                 if self.preference[info_type] in alt_options:
                     alt_options.remove(self.preference[info_type])
                     alt_preference_list[info_type] = alt_options
-        
+                else:
+                    alt_preference_list[info_type] = [self.preference[info_type]]
+
         for info_type in alt_preference_list:
             alt_preference = self.preference.copy()
             for pref in alt_preference_list[info_type]:
                 alt_preference[info_type] = pref
                 df_option = merge(DataFrame(alt_preference, index=[0]), self.data.copy())
-                self.options = concat([self.options,df_option])
-        
+                self.options = concat([self.options, df_option])
+
         for order_index in range(self.options.shape[0]):
             option = self.options.iloc[order_index]
-            option_string = (f'{order_index}. A restaurant serving {option[InfoType.food]} food in the ' \
-            f'{option[InfoType.area]}, in the price range '\
-            f'{option[InfoType.pricerange]}\n')
+            option_string = (f'{order_index}: {self.str_restaurant(option)}\n')
             return_str += option_string
         return return_str
-    
 
     @staticmethod
     def str_restaurant(row: Series):
