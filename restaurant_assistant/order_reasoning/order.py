@@ -195,7 +195,7 @@ class Order:
                 if self.preference[info_type] in alt_options:
                     alt_options.remove(self.preference[info_type])
                     alt_preference_list[info_type] = alt_options
-                else:
+                elif alt_preference_list[info_type] is None:
                     alt_preference_list[info_type] = [self.preference[info_type]]
 
         for info_type in alt_preference_list:
