@@ -3,3 +3,4 @@ sklearn
 pandas
 pygame
 gtts
+python-Levenshtein-wheels
