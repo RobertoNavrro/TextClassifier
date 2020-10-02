@@ -107,7 +107,7 @@ def process_extra(utterance: str, options: DataFrame, value_options: Dict[InfoTy
 
     rules = get_rules()
     return_strs = list()
-    rec = '{} is {} recommended, based on preference {}.\n'
+    rec = '{} is {}recommended, based on preference {}.\n'
 
     for i in options.index:
         rest_str = f'{i}: {Order.str_restaurant(options.loc[i])}\n'
