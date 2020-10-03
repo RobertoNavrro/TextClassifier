@@ -39,7 +39,7 @@ def output(text: str, speech: bool, uppercase: bool) -> None:
 
 
 def run_assistant(classifier: UtteranceClassifier, test: bool, speech: bool,
-                  nr_recs: int, restart: bool, uppercase: bool, ordercount: int) -> None:
+                  nr_recs: int, restart: bool, uppercase: bool) -> None:
     """
     Runs the restaurant assistant with the given parameters.
 
@@ -53,7 +53,6 @@ def run_assistant(classifier: UtteranceClassifier, test: bool, speech: bool,
     data = data_loader.load_dialog_data()
     train_data, test_data = data_loader.generate_dataframes(data)
     classifier.initialize(train_data)
-
     if test:
         output('Testing the classifier..', speech, uppercase)
         f1_score, accuracy = classifier.test_performance(test_data)
@@ -63,13 +62,13 @@ def run_assistant(classifier: UtteranceClassifier, test: bool, speech: bool,
     output('Welcome to the restaurant assistant. You can ask for restaurants by type of food, '
            'area and price range.', speech, uppercase)
     current_state = StartState()
-    order = Order(ordercount)
+    order = Order(nr_recs)
     while(True):
         utterance = input().lower()
         input_type = classifier.classify(utterance)
 
         if restart and input_type is UtteranceType.restart:
-            order = Order(ordercount)
+            order = Order(nr_recs)
             current_state = StartState()
             output('Your order has been cleared. Please state your new order.', speech, uppercase)
             continue
@@ -98,19 +97,16 @@ def main():
     parser.add_argument('-s --speech', action='store_true', dest='speech',
                         help='Read all output out loud')
 
-    parser.add_argument('-n --nr_recs', type=int, default=1, dest='nr_recs',
+    parser.add_argument('-n --nr_recs', type=int, default=3, dest='nr_recs',
                         help='Decide the maximum amount of recommendations that '
-                        'are given at a time. The default is 1.')
+                        'are given at a time. The default is 3.')
 
     parser.add_argument('-r --restart', action='store_true', dest='restart',
                         help='Allow for restarts of the program.')
 
     parser.add_argument('-u --uppercase', action='store_true', dest='uppercase',
                         help='Prints all system output in uppercase letters.')
-    
-    parser.add_argument('-o --ordercount', type=int, default=2, dest='ordercount',
-                        help='Limits the number of choices shown.')
-    
+
     args = parser.parse_args()
 
     if args.classifier == 'neural_network':
@@ -124,7 +120,7 @@ def main():
     else:
         raise Exception(f'The given classifier, {args.classifier}, is unknown.')
 
-    run_assistant(classifier, args.test, args.speech, args.nr_recs, args.restart, args.uppercase, args.ordercount)
+    run_assistant(classifier, args.test, args.speech, args.nr_recs, args.restart, args.uppercase)
 
 
 if __name__ == "__main__":

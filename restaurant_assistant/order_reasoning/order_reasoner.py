@@ -86,34 +86,37 @@ def get_rules() -> List[Rule]:
             rule13, rule14, rule15, rule16]
 
 
-def process_extra(utterance: str, options: DataFrame, value_options: Dict[InfoType, List[str]]) \
-        -> List[str]:
+def process_extra(utterance: str, order: Order) -> List[str]:
     """
     Extracts all additional preferences. Applies the implication rules to all restaurants, and
     returns strings for each restaurant that contain the applied rules and whether they are
     recommended.
 
+    :param utterance: the utterance containing additional requests
+    :param order: the order containing the preferences of the user
     :return: list of strings with one string for each restaurant, denoting the applied rules
         and  whether they are recommended.
     """
     extra_keys = [InfoType.food_quality, InfoType.diet]
-    extras_values = {key: value for key, value in value_options.items() if key in extra_keys}
+    extras_values = {key: value for key, value in order.value_options.items() if key in extra_keys}
     help_values = {key: value for key, value in info_keywords.items() if key in extra_keys}
 
     column_values = find_keywords(extras_values, help_values, utterance)
     column_values.extend((x, True) for x in extras if x in utterance)
     for extra in extras:
-        options[extra] = Series(dtype='bool')
+        order.options[extra] = Series(dtype='bool')
 
     rules = get_rules()
-    return_strs = list()
-    rec = '{} is {} recommended, based on preference {}.\n'
+    rest_list = list()
+    rec = '{} is {}recommended, based on preference {}.\n'
 
-    for i in options.index:
-        rest_str = f'{i}: {Order.str_restaurant(options.loc[i])}\n'
+    for i in order.options.index:
+        rest_str = f'{i}: {order.str_restaurant(order.options.loc[i])}\n'
+        rest_value = 0
         for key, value in column_values:
-            if key in options.columns and options.at[i, key] == value:
-                rest_str += rec.format(options.at[i, InfoType.restaurantname], '', value)
+            if key in order.options.columns and order.options.at[i, key] == value:
+                rest_str += rec.format(order.options.at[i, InfoType.restaurantname], '', value)
+                rest_value = 1
                 break
         else:
             loop = True
@@ -121,24 +124,27 @@ def process_extra(utterance: str, options: DataFrame, value_options: Dict[InfoTy
             while(loop):
                 loop = False
                 for rule in rules:
-                    new_value, match = rule.apply(options.loc[i], column_values)
+                    new_value, match = rule.apply(order.options.loc[i], column_values)
                     if match is not None:
                         stack.append(rule)
                         for rule in stack:
                             rest_str += f'{str(rule)}\n'
 
                         verdict = '' if match else 'not '
-                        rest_str += rec.format(options.at[i, InfoType.restaurantname], verdict,
-                                               rule.consequent)
+                        rest_value = 1 if match else -1
+                        rest_str += rec.format(order.options.at[i, InfoType.restaurantname],
+                                               verdict, rule.consequent)
 
                         loop = False
                         break
 
                     if new_value:
-                        options.at[i, rule.consequent] = rule.value
+                        order.options.at[i, rule.consequent] = rule.value
                         stack.append(rule)
                         loop = True
 
-        return_strs.append(rest_str)
+        rest_list.append((rest_str, rest_value))
 
+    rest_list.sort(key=lambda x: x[1], reverse=True)
+    return_strs = [x[0] for index, x in enumerate(rest_list) if index <= order.ordercount - 1]
     return return_strs

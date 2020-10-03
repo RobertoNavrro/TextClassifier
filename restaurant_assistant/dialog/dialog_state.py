@@ -177,7 +177,7 @@ class AdditionalRequirementState(DialogState):
         if input_type is UtteranceType.negate:
             return_str, next_state = self.give_new_recommendation(order)
         else:
-            rest_strs = process_extra(utterance, order.options, order.value_options)
+            rest_strs = process_extra(utterance, order)
             return_str = 'The following options are available, please choose by number:\n\n'
             return_str = return_str + '\n'.join(rest_strs)
             next_state = GetChoiceState()

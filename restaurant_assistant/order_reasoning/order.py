@@ -101,11 +101,11 @@ class Order:
             self.preference[info_type] = None
 
         return changes
-    
+
     def reset_preferences(self) -> None:
         for key in self.preference.keys():
             self.preference[key] = None
-        
+
     def get_empty_preferences(self) -> List[InfoType]:
         """
         Get all info types for which a preference hasn't been given yet.
@@ -190,7 +190,8 @@ class Order:
         self.options = DataFrame()
         return_str = "Here are the available options, please indicate which option number " \
             "you desire:\n"
-        alt_preference_list = {key: None for key in [InfoType.food, InfoType.pricerange, InfoType.area]}
+        alt_preference_list = {key: None for key in [InfoType.food, InfoType.pricerange,
+                                                     InfoType.area]}
         alt_preference = {key: None for key in [InfoType.food, InfoType.pricerange, InfoType.area]}
 
         for info_type in self.preference.keys():
@@ -199,7 +200,7 @@ class Order:
                 if self.preference[info_type] in alt_options:
                     alt_options.remove(self.preference[info_type])
                     alt_preference_list[info_type] = alt_options
-                else:
+                elif alt_preference_list[info_type] is None:
                     alt_preference_list[info_type] = [self.preference[info_type]]
 
         for info_type in alt_preference_list:
@@ -210,13 +211,10 @@ class Order:
                     df_option = merge(DataFrame(alt_preference, index=[0]), self.data.copy())
                     self.options = concat([self.options, df_option])
 
-        if self.options.shape[0] == 0:
+        if self.options.empty:
             return None
         else:
-            if self.options.shape[0] < self.ordercount:
-                max_display = self.options.shape[0]
-            else:
-                max_display = self.ordercount
+            max_display = min(self.ordercount, len(self.options.index))
             for order_index in range(max_display):
                 option = self.options.iloc[order_index]
                 option_string = (f'{order_index}: {self.str_restaurant(option)}\n')
