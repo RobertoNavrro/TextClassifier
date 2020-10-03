@@ -55,11 +55,12 @@ class Order:
     :var Series recommendation: the row of the restaurant that is recommended
     """
 
-    def __init__(self):
+    def __init__(self, ordercount: int):
         self.preference = {key: None for key in [InfoType.food, InfoType.pricerange, InfoType.area]}
         self.data = load_restaurant_info()
         self.data.columns = [InfoType[x] for x in self.data.columns]
         self.value_options = self.load_value_options()
+        self.ordercount = ordercount
         self.options = None
         self.recommendation = None
         self.extras = None
@@ -101,6 +102,10 @@ class Order:
 
         return changes
 
+    def reset_preferences(self) -> None:
+        for key in self.preference.keys():
+            self.preference[key] = None
+
     def get_empty_preferences(self) -> List[InfoType]:
         """
         Get all info types for which a preference hasn't been given yet.
@@ -128,7 +133,7 @@ class Order:
 
     def set_recommendation(self, choice: int):
         self.recommendation = self.options.iloc[choice]
-        self.options = self.options.drop([choice])
+        self.options = self.options.drop(self.options.index[choice])
 
     def load_value_options(self) -> Dict[InfoType, List[str]]:
         """
@@ -200,15 +205,20 @@ class Order:
 
         for info_type in alt_preference_list:
             alt_preference = self.preference.copy()
-            for pref in alt_preference_list[info_type]:
-                alt_preference[info_type] = pref
-                df_option = merge(DataFrame(alt_preference, index=[0]), self.data.copy())
-                self.options = concat([self.options, df_option])
+            if alt_preference[info_type] is not None:
+                for pref in alt_preference_list[info_type]:
+                    alt_preference[info_type] = pref
+                    df_option = merge(DataFrame(alt_preference, index=[0]), self.data.copy())
+                    self.options = concat([self.options, df_option])
 
-        for order_index in range(self.options.shape[0]):
-            option = self.options.iloc[order_index]
-            option_string = (f'{order_index}: {self.str_restaurant(option)}\n')
-            return_str += option_string
+        if self.options.empty:
+            return None
+        else:
+            max_display = min(self.ordercount, len(self.options.index))
+            for order_index in range(max_display):
+                option = self.options.iloc[order_index]
+                option_string = (f'{order_index}: {self.str_restaurant(option)}\n')
+                return_str += option_string
         return return_str
 
     @staticmethod

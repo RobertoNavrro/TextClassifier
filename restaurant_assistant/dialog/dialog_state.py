@@ -177,7 +177,7 @@ class AdditionalRequirementState(DialogState):
         if input_type is UtteranceType.negate:
             return_str, next_state = self.give_new_recommendation(order)
         else:
-            rest_strs = process_extra(utterance, order.options, order.value_options)
+            rest_strs = process_extra(utterance, order)
             return_str = 'The following options are available, please choose by number:\n\n'
             return_str = return_str + '\n'.join(rest_strs)
             next_state = GetChoiceState()
@@ -194,9 +194,19 @@ class OrderConflictState(DialogState):
     def process_input(self, utterance, input_type, order):
         if input_type is UtteranceType.affirm or input_type is UtteranceType.reqalts:
             return_str = order.compute_alternatives()
-            next_state = GetChoiceState()
+            if return_str is None:
+                order.reset()
+                order.reset_preferences()
+                next_state = AskPreferenceState()
+                return_str = 'We are sorry to inform you there are no alternatives. Please indicate new preferences.'
+            else:
+                next_state = GetChoiceState()
         elif input_type is UtteranceType.negate:
-            return_str, next_state = self.process_deny(utterance, order)
+            order.reset()
+            order.reset_preferences()
+            empty_prefs = order.get_empty_preferences()
+            return_str = pref_str[empty_prefs[0]]
+            next_state = AskPreferenceState()
         else:
             return_str = repeat_str
             next_state = OrderConflictState()

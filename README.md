@@ -36,6 +36,6 @@ Additional parameters can be given to the program to change its configuration fo
 | -c         | --classifier  | Decides which classifier to use to classify the type of the user utterance. <br> Options: neural\_network, decision\_tree, keyword, majority | neural\_network  |
 | -t         | --test        | Tests the classifier on its performance, reporting the F1 score and the accuracy.                                                            | False            |
 | -s         | --speech      | Converts the program output to audio and plays it.                                                                                           | False            |
-| -n         | --nr_recs     | Decides the maximum amount of recommendations that the system will give.                                                                     | 1                |
+| -n         | --nr_recs     | Decides the maximum amount of recommendations that the system will give.                                                                     | 3                |
 | -r         | --restart     | Allows for restarts of the program.                                                                                                          | False            |
 | -u         | --uppercase   | Prints all program output with uppercase letters.                                                                                            | False            |
