@@ -39,3 +39,4 @@ Additional parameters can be given to the program to change its configuration fo
 | -n         | --nr_recs     | Decides the maximum amount of recommendations that the system will give.                                                                     | 1                |
 | -r         | --restart     | Allows for restarts of the program.                                                                                                          | False            |
 | -u         | --uppercase   | Prints all program output with uppercase letters.                                                                                            | False            |
+| -o         | --ordercount   | Limits the number of choices shown.                                                                                            | 2           |

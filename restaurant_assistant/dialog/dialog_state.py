@@ -194,9 +194,19 @@ class OrderConflictState(DialogState):
     def process_input(self, utterance, input_type, order):
         if input_type is UtteranceType.affirm or input_type is UtteranceType.reqalts:
             return_str = order.compute_alternatives()
-            next_state = GetChoiceState()
+            if return_str is None:
+                order.reset()
+                order.reset_preferences()
+                next_state = AskPreferenceState()
+                return_str = 'We are sorry to inform you there are no alternatives. Please indicate new preferences.'
+            else:
+                next_state = GetChoiceState()
         elif input_type is UtteranceType.negate:
-            return_str, next_state = self.process_deny(utterance, order)
+            order.reset()
+            order.reset_preferences()
+            empty_prefs = order.get_empty_preferences()
+            return_str = pref_str[empty_prefs[0]]
+            next_state = AskPreferenceState()
         else:
             return_str = repeat_str
             next_state = OrderConflictState()
