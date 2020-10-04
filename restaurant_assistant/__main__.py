@@ -86,12 +86,12 @@ def main():
     """
     parser = argparse.ArgumentParser(description='Start the restaurant assistant')
 
-    parser.add_argument('-c -classifier', type=str, default='neural_network',
+    parser.add_argument('-c --classifier', type=str, default='decision_tree',
                         choices=['neural_network', 'decision_tree', 'keyword', 'majority'],
                         dest='classifier', help='Choose which classifier to use to '
-                        'classify the user input. Default is neural network.')
+                        'classify the user input. Default is decision_tree.')
 
-    parser.add_argument('-t -test', action='store_true', dest='test',
+    parser.add_argument('-t --test', action='store_true', dest='test',
                         help='Test the performance of the classifier.')
 
     parser.add_argument('-s --speech', action='store_true', dest='speech',

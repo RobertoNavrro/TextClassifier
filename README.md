@@ -28,12 +28,18 @@ restaurant_assistant
 ```
 
 ### Parameters
-Additional parameters can be given to the program to change its configuration for that run. The following options are available:
+Additional parameters can be given to the program to change its configuration for that run. These must be added to the program call, for example:
+
+```sh
+restaurant_assistant -c keyword -t -n 5
+```
+
+The following options are available:
 
 
 | Shorthand  | Full name     | Explanation                                                                                                                                  | Default          |
 |------------|---------------|----------------------------------------------------------------------------------------------------------------------------------------------|------------------|
-| -c         | --classifier  | Decides which classifier to use to classify the type of the user utterance. <br> Options: neural\_network, decision\_tree, keyword, majority | neural\_network  |
+| -c         | --classifier  | Decides which classifier to use to classify the type of the user utterance. <br> Options: neural\_network, decision\_tree, keyword, majority | decision\_tree   |
 | -t         | --test        | Tests the classifier on its performance, reporting the F1 score and the accuracy.                                                            | False            |
 | -s         | --speech      | Converts the program output to audio and plays it.                                                                                           | False            |
 | -n         | --nr_recs     | Decides the maximum amount of recommendations that the system will give.                                                                     | 3                |
