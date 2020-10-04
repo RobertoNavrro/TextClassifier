@@ -78,7 +78,8 @@ class DecisionTreeClassifier(UtteranceClassifier):
         Adds columns to the data for converted utterances and the label in one-hot coding format.
         :param data: training data. Not yet separated from validation data
         """
-        all_words = list(set([y for x in data[Column.utterance] for y in x.lower().split()]))
+        all_words = sorted(list(set([y for x in data[Column.utterance]
+                                     for y in x.lower().split()])))
         all_words.insert(0, None)
         self.words = all_words
 
