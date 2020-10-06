@@ -59,8 +59,9 @@ def run_assistant(classifier: UtteranceClassifier, test: bool, speech: bool,
         result = f'F1 score: {round(f1_score, 2)}\nAccuracy: {round(accuracy, 3)}'
         output(result, speech, uppercase)
 
-    output('Welcome to the restaurant assistant. You can ask for restaurants by type of food, '
-           'area and price range.', speech, uppercase)
+    response = 'Welcome to the restaurant assistant. You can ask for restaurants by type of food, '\
+        'area and price range.'
+    output(response, speech, uppercase)
     current_state = StartState()
     order = Order(nr_recs)
     while(True):
@@ -71,6 +72,9 @@ def run_assistant(classifier: UtteranceClassifier, test: bool, speech: bool,
             order = Order(nr_recs)
             current_state = StartState()
             output('Your order has been cleared. Please state your new order.', speech, uppercase)
+            continue
+        elif input_type is UtteranceType.repeat:
+            output(response, speech, uppercase)
             continue
 
         response, current_state = current_state.process_input(utterance, input_type, order)
