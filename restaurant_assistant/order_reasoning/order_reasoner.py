@@ -53,9 +53,10 @@ class Rule():
         return new_value, same_value
 
     def __str__(self):
-        str_antecedent = {x.name if isinstance(x, InfoType) else x: value
-                          for x, value in self.antecedent.items()}
-        return f'Rule {self.id}: {str_antecedent} -> {self.consequent}: {self.value}'
+        str_antecedent = [f'{x.name} is {value}'.replace('_', ' ') if isinstance(x, InfoType)
+                          else f'{x} is {value}'.replace('_', ' ')
+                          for x, value in self.antecedent.items()]
+        return f'Rule {self.id}: {str_antecedent} implies {self.consequent} is {self.value}'
 
 
 def get_rules() -> List[Rule]:
@@ -127,6 +128,7 @@ def process_extra(utterance: str, order: Order) -> List[str]:
                     new_value, match = rule.apply(order.options.loc[i], column_values)
                     if match is not None:
                         stack.append(rule)
+                        rest_str += 'Rules applied:\n'
                         for rule in stack:
                             rest_str += f'{str(rule)}\n'
 
